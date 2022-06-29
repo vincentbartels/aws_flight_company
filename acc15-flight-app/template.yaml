@@ -1,0 +1,293 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  ACC_15 AWS Project with SAM & Cloud9
+  Serverless Kunden- und Flugbuchungsanwendung von Vincent Bartels (ACC_15)
+
+Parameters:
+  AppName:
+    Type: String
+    Default: flight-app
+  Stage:
+    Type: String
+    Default: Prod
+
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+
+Resources:
+  FlightDatabase:
+    Type: AWS::Serverless::SimpleTable
+  BrokenFlightApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name:
+        Fn::Sub: ${AppName}-api-${Stage}
+      StageName: Prod
+      DefinitionBody:
+        Fn::Transform:
+          Name: AWS::Include
+          Parameters:
+            Location: REST_API_vincent_bartels.yaml
+  HelloWorldFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      FunctionName:
+          Fn::Sub: ${AppName}-func-${Stage}
+      CodeUri: hello_world/
+      Handler: app.lambda_handler
+      Runtime: python3.7
+      Architectures:
+        - x86_64
+  GetCustomerDataFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName:
+              Ref: FlightDatabase
+      Environment:
+        Variables:
+          TABLE_NAME:
+            Ref: FlightDatabase
+      FunctionName:
+        Fn::Sub: ${AppName}-get-customer-data-${Stage}
+      CodeUri: get_customer_data/
+      Handler: app.lambda_handler
+      Runtime: python3.7
+      Architectures:
+        - x86_64
+      Events:
+        GetCustomerData:
+            Type: Api
+            Properties:
+              Path: /customer
+              Method: get
+              
+  DeleteCustomerDataFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName:
+              Ref: FlightDatabase
+      Environment:
+        Variables:
+          TABLE_NAME:
+            Ref: FlightDatabase
+      FunctionName:
+        Fn::Sub: ${AppName}-delete-customer-data-${Stage}
+      CodeUri: delete_customer_data/
+      Handler: app.lambda_handler
+      Runtime: python3.7
+      Architectures:
+        - x86_64
+      Events:
+        GetCustomerData:
+          Type: Api
+          Properties:
+            Path: /customer/{id}
+            Method: delete
+            
+  GetSingleCustomerDataFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName:
+              Ref: FlightDatabase
+      Environment:
+        Variables:
+          TABLE_NAME:
+            Ref: FlightDatabase
+      FunctionName:
+        Fn::Sub: ${AppName}-get-single-customer-data-${Stage}
+      CodeUri: get_single_customer_data/
+      Handler: app.lambda_handler
+      Runtime: python3.7
+      Architectures:
+        - x86_64
+      Events:
+        GetCustomerData:
+          Type: Api
+          Properties:
+            Path: /customer/{id}
+            Method: get
+            
+  ChangeSingleCustomerDataFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName:
+              Ref: FlightDatabase
+      Environment:
+        Variables:
+          TABLE_NAME:
+            Ref: FlightDatabase
+      FunctionName:
+        Fn::Sub: ${AppName}-change-single-customer-data-${Stage}
+      CodeUri: change_single_customer_data/
+      Handler: app.lambda_handler
+      Runtime: python3.7
+      Architectures:
+        - x86_64
+      Events:
+        GetCustomerData:
+          Type: Api
+          Properties:
+            Path: /customer/{id}
+            Method: put
+            
+  GetFlightDataFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName:
+              Ref: FlightDatabase
+      Environment:
+        Variables:
+          TABLE_NAME:
+            Ref: FlightDatabase
+      FunctionName:
+        Fn::Sub: ${AppName}-get-flight-data-${Stage}
+      CodeUri: get_flight_data/
+      Handler: app.lambda_handler
+      Runtime: python3.7
+      Architectures:
+        - x86_64
+      Events:
+        GetCustomerData:
+          Type: Api
+          Properties:
+            Path: /flight
+            Method: get
+            
+  CreateFlightDataFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName:
+              Ref: FlightDatabase
+      Environment:
+        Variables:
+          TABLE_NAME:
+            Ref: FlightDatabase
+      FunctionName:
+        Fn::Sub: ${AppName}-create-flight-data-${Stage}
+      CodeUri: create_flight_data/
+      Handler: app.lambda_handler
+      Runtime: python3.7
+      Architectures:
+        - x86_64
+      Events:
+        GetCustomerData:
+          Type: Api
+          Properties:
+            Path: /flight
+            Method: post
+            
+  GetSingleFlightDataFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName:
+              Ref: FlightDatabase
+      Environment:
+        Variables:
+          TABLE_NAME:
+            Ref: FlightDatabase
+      FunctionName:
+        Fn::Sub: ${AppName}-get-single-flight-data-${Stage}
+      CodeUri: get_single_flight_data/
+      Handler: app.lambda_handler
+      Runtime: python3.7
+      Architectures:
+        - x86_64
+      Events:
+        GetCustomerData:
+          Type: Api
+          Properties:
+            Path: /flight/{id}
+            Method: get
+            
+  GetBookingDataFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName:
+              Ref: FlightDatabase
+      Environment:
+        Variables:
+          TABLE_NAME:
+            Ref: FlightDatabase
+      FunctionName:
+        Fn::Sub: ${AppName}-get-booking-data-${Stage}
+      CodeUri: get_booking_data/
+      Handler: app.lambda_handler
+      Runtime: python3.7
+      Architectures:
+        - x86_64
+      Events:
+        GetCustomerData:
+          Type: Api
+          Properties:
+            Path: /booking
+            Method: get
+            
+  CreateBookingDataFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName:
+              Ref: FlightDatabase
+      Environment:
+        Variables:
+          TABLE_NAME:
+            Ref: FlightDatabase
+      FunctionName:
+        Fn::Sub: ${AppName}-create-booking-data-${Stage}
+      CodeUri: create_booking_data/
+      Handler: app.lambda_handler
+      Runtime: python3.7
+      Architectures:
+        - x86_64
+      Events:
+        GetCustomerData:
+          Type: Api
+          Properties:
+            Path: /booking
+            Method: post
+            
+  GetSingleBookingDataFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName:
+              Ref: FlightDatabase
+      Environment:
+        Variables:
+          TABLE_NAME:
+            Ref: FlightDatabase
+      FunctionName:
+        Fn::Sub: ${AppName}-get-single-booking-data-${Stage}
+      CodeUri: get_single_booking_data/
+      Handler: app.lambda_handler
+      Runtime: python3.7
+      Architectures:
+        - x86_64
+      Events:
+        GetCustomerData:
+          Type: Api
+          Properties:
+            Path: /booking/{id}
+            Method: get

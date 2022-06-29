@@ -1,0 +1,45 @@
+openapi: 3.0.2
+info:
+  title: ACC - REST API for a flight company
+  description: Solution to the exercise No. 5 by Vincent Bartels
+  version: "1.0.0"
+servers:
+  - url: https://api.server.test/v1
+paths:
+  /airports:
+    get:
+      tags:
+        - airport
+      description: get all airports
+      summary: get airports
+      parameters:
+        - name: cid
+          in: query
+          required: false
+          description: Limit search with carrier id
+          schema:
+            type: string
+      x-amazon-apigateway-integration:
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${HelloWorldFunction.Arn}/invocations
+        type: "aws"
+        httpMethod: GET
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/airport'
+
+components:
+  schemas:
+    airport:
+      type: object
+      properties:
+        city:
+          type: string
+        country:
+          type: string
