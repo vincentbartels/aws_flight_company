@@ -8,7 +8,7 @@ def lambda_handler(event, context):
     table_name = os.getenv('TABLE_NAME')
     table = dynamodb.Table(table_name)
     
-    response = table.scan()
+    response = table.get_item(Key={"id": event['id']})
     return {
         'statusCode': 200,
         'body': response
